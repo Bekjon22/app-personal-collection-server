@@ -19,7 +19,7 @@ public class MessageConfig {
         messageSource.setBasename("classpath:messages");
         messageSource.setFallbackToSystemLocale(false);
         messageSource.setDefaultEncoding("UTF-8");
-//        messageSource.setDefaultLocale(new Locale("en"));
+        messageSource.setDefaultLocale(new Locale("en"));
         return messageSource;
     }
 
@@ -30,10 +30,10 @@ public class MessageConfig {
         return localValidatorFactoryBean;
     }
 
-    @Bean
-    public LocaleResolver localeResolver() {
-        SessionLocaleResolver localeResolver = new SessionLocaleResolver();
-        localeResolver.setDefaultLocale(new Locale("en")); // change this
-        return localeResolver;
-    }
+//    @Bean
+//    public LocaleResolver localeResolver() {
+//        SessionLocaleResolver localeResolver = new SessionLocaleResolver();
+//        localeResolver.setDefaultLocale(new Locale("en")); // change this
+//        return localeResolver;
+//    }
 }

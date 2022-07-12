@@ -7,12 +7,18 @@ import com.itransition.enums.Topic;
 import com.itransition.exception.RestException;
 import com.itransition.mapper.CollectionMapper;
 import com.itransition.payload.ApiResult;
+import com.itransition.payload.CustomPage;
 import com.itransition.payload.req.CollectionDto;
 import com.itransition.payload.req.CollectionEditDto;
 import com.itransition.payload.resp.CollectionProjection;
 import com.itransition.payload.resp.CollectionResDto;
+import com.itransition.payload.resp.CollectionResDtoAll;
 import com.itransition.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,7 +28,7 @@ import java.util.Set;
 
 /**
  * @author Bekjon Bakhromov
- * @since  23.06.2022-1:08 PM
+ * @since 23.06.2022-1:08 PM
  */
 @Service
 @RequiredArgsConstructor
@@ -36,14 +42,14 @@ public class CollectionServiceImpl implements CollectionService {
 
 
     @Override
-    public ApiResult<?> add(CollectionDto dto,User user)  {
+    public ApiResult<?> add(CollectionDto dto, User user) {
         User foundUser = userRepository.findById(user.getId()).orElseThrow(() -> RestException.notFound(MessageService.getMessage("USER_NOT_FOUND")));
         Collection collection = new Collection();
         collection.setName(dto.getName());
         collection.setDescription(dto.getDescription());
         collection.setTopic(Topic.valueOf(dto.getTopic()));
         collection.setUser(foundUser);
-        if (dto.getPhotoId()!=null){
+        if (dto.getPhotoId() != null) {
             Attachment photo = attachmentRepository.findById(dto.getPhotoId()).orElseThrow(() -> RestException.notFound(MessageService.getMessage("PHOTO_NOT_FOUND")));
             collection.setImage(photo);
         }
@@ -76,6 +82,26 @@ public class CollectionServiceImpl implements CollectionService {
     }
 
     @Override
+    public CustomPage<CollectionResDtoAll> makeCustomPage(Page<Collection> collections) {
+        List<CollectionResDtoAll> collectionResDtoAll = new ArrayList<>();
+        for (Collection collection : collections.getContent()) {
+            CollectionResDtoAll collectionResDto = new CollectionResDtoAll();
+            collectionResDto.setName(collection.getName());
+            collectionResDto.setDescription(collection.getDescription());
+            collectionResDto.setTopic(collection.getTopic().name());
+            collectionResDtoAll.add(collectionResDto);
+        }
+        return new CustomPage<>(
+                collectionResDtoAll,
+                collections.getNumberOfElements(),
+                collections.getNumber(),
+                collections.getTotalElements(),
+                collections.getTotalPages(),
+                collections.getSize()
+        );
+    }
+
+    @Override
     public ApiResult<List<CollectionResDto>> getAllByUser(User user) {
 
         User one = userRepository.getOne(user.getId());
@@ -84,20 +110,25 @@ public class CollectionServiceImpl implements CollectionService {
 
 //        List<CollectionResDto> collectionResDtos = collectionMapper.toCollectionRespDtoList(allByUser);
 
-        List<CollectionResDto>collectionResDtos =new ArrayList<>();
+        List<CollectionResDto> collectionResDtos = new ArrayList<>();
         for (Collection collection : allByUser) {
             CollectionResDto collectionResDto = new CollectionResDto();
             collectionResDto.setName(collection.getName());
-               collectionResDto.setDescription(collection.getDescription());
-                  collectionResDto.setTopic(collection.getTopic().name());
-                 collectionResDto.setId( collection.getId());
+            collectionResDto.setDescription(collection.getDescription());
+            collectionResDto.setTopic(collection.getTopic().name());
+            collectionResDto.setId(collection.getId());
             collectionResDtos.add(collectionResDto);
         }
 
         return ApiResult.successResponse(collectionResDtos);
     }
 
-
+    @Override
+    public ApiResult<CustomPage<CollectionResDtoAll>> getAll(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.asc("name")));
+        Page<Collection> all = collectionRepository.findAll(pageable);
+        return ApiResult.successResponse(makeCustomPage(all));
+    }
 
 
 }

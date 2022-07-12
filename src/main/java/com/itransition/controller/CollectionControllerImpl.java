@@ -4,10 +4,12 @@ import com.itransition.annotation.CheckPermission;
 import com.itransition.entity.User;
 import com.itransition.enums.Topic;
 import com.itransition.payload.ApiResult;
+import com.itransition.payload.CustomPage;
 import com.itransition.payload.req.CollectionDto;
 import com.itransition.payload.req.CollectionEditDto;
 import com.itransition.payload.resp.CollectionProjection;
 import com.itransition.payload.resp.CollectionResDto;
+import com.itransition.payload.resp.CollectionResDtoAll;
 import com.itransition.service.CollectionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -58,6 +60,11 @@ public class CollectionControllerImpl implements CollectionController {
     @Override
     public ApiResult<List<CollectionResDto>> getAllByUser(User user) {
         return collectionService.getAllByUser(user);
+    }
+
+    @Override
+    public ApiResult<CustomPage<CollectionResDtoAll>> getAll(Integer page, Integer size) {
+        return collectionService.getAll(page,size);
     }
 
 
